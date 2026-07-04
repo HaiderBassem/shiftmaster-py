@@ -48,14 +48,14 @@ def setup_test_db():
         with conn.cursor() as cur:
             cur.execute(f"DROP DATABASE IF EXISTS {TEST_DB_NAME} WITH (FORCE);")
 
-@pytest_asyncio.fixture(scope="session", loop_scope="session")
+@pytest_asyncio.fixture(scope="function")
 async def db_pool():
     pool = AsyncConnectionPool(conninfo=TEST_DB_URL, min_size=1, max_size=5, open=False)
     await pool.open()
     yield pool
     await pool.close()
 
-@pytest_asyncio.fixture(scope="session", loop_scope="session")
+@pytest_asyncio.fixture(scope="function")
 async def async_client(db_pool):
     app.dependency_overrides[get_db_pool] = lambda: db_pool
     
