@@ -60,3 +60,20 @@ jobs:
 
       - name: Run Tests
         run: docker compose run --rm api bash -c "pip install '.[dev]' && pytest -v"
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/actions-runner/_work/shiftmaster-py/shiftmaster-py
+            git pull origin main
+            docker compose down
+            docker compose up -d --build
