@@ -1,0 +1,62 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: self-hosted
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Generate .env file
+        run: |
+          rm -f .env
+          echo "DB_HOST=${{ secrets.DB_HOST }}" >> .env
+          echo "DB_PORT=${{ secrets.DB_PORT }}" >> .env
+          echo "DB_USER=${{ secrets.DB_USER }}" >> .env
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> .env
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> .env
+          echo "DB_SSL_MODE=disable" >> .env
+          echo "DB_MAX_OPEN_CONNS=50" >> .env
+          echo "DB_MIN_CONNS=10" >> .env
+          echo "SERVER_HOST=0.0.0.0" >> .env
+          echo "SERVER_PORT=8080" >> .env
+          echo "ENV=${{ secrets.ENV }}" >> .env
+          echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+          echo "JWT_ISSUER=${{ secrets.JWT_ISSUER }}" >> .env
+          echo "JWT_ACCESS_EXPIRE_MIN=15" >> .env
+          echo "JWT_REFRESH_EXPIRE_DAYS=7" >> .env
+          echo "BCRYPT_COST=12" >> .env
+          echo "UPLOAD_BASE_PATH=./uploads" >> .env
+          echo "UPLOAD_MAX_FILE_SIZE_MB=5" >> .env
+
+      - name: Install Docker Compose v2
+        run: |
+          mkdir -p ~/.docker/cli-plugins/
+          curl -SL https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
+          chmod +x ~/.docker/cli-plugins/docker-compose
+
+      - name: Fix Docker Permissions
+        run: sudo chmod 666 /var/run/docker.sock || true
+
+      - name: Start Database
+        run: docker compose up -d db
+
+      - name: Wait for Database to be ready
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          timeout 30s bash -c 'until docker compose ps | grep "healthy"; do sleep 1; done'
+          echo "PostgreSQL is ready!"
+
+      - name: Build API Image
+        run: docker compose build api
+
+      - name: Run Tests
+        run: docker compose run --rm api bash -c "pip install '.[dev]' && pytest -v"
