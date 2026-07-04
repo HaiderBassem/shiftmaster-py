@@ -88,7 +88,7 @@ async def admin_token(db_pool):
                     )
                 """, (user_id, TEST_HASHED_PASSWORD))
     
-    token = create_access_token({"sub": user_id, "role": "admin"})
+    token = create_access_token(user_id, "admin")
     return token
 
 @pytest_asyncio.fixture
@@ -110,5 +110,5 @@ async def user_token(db_pool):
                     )
                 """, (user_id, TEST_HASHED_PASSWORD))
     
-    token = create_access_token({"sub": user_id, "role": "employee"})
+    token = create_access_token(user_id, "employee")
     return token
