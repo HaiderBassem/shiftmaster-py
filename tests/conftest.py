@@ -8,14 +8,14 @@ from httpx import AsyncClient, ASGITransport
 from psycopg_pool import AsyncConnectionPool
 
 # Set env vars BEFORE importing app
-os.environ["PROJECT_NAME"] = "Shiftmaster-Test"
-os.environ["DB_USER"] = "postgres"
-os.environ["DB_PASSWORD"] = "haidercpp"
-os.environ["DB_HOST"] = "localhost"
-os.environ["DB_PORT"] = "5432"
-os.environ["DB_NAME"] = "shiftmaster_test_db"
-os.environ["JWT_SECRET"] = "supersecrettestkeythatisatleast32byteslong"
-os.environ["JWT_ALGORITHM"] = "HS256"
+os.environ.setdefault("PROJECT_NAME", "Shiftmaster-Test")
+os.environ.setdefault("DB_USER", "postgres")
+os.environ.setdefault("DB_PASSWORD", "haidercpp")
+os.environ.setdefault("DB_HOST", "localhost")
+os.environ.setdefault("DB_PORT", "5432")
+os.environ.setdefault("DB_NAME", "shiftmaster_test_db")
+os.environ.setdefault("JWT_SECRET", "supersecrettestkeythatisatleast32byteslong")
+os.environ.setdefault("JWT_ALGORITHM", "HS256")
 
 from app.main import app
 from app.api.deps import get_db_pool
