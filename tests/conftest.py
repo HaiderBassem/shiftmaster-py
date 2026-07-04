@@ -1,4 +1,5 @@
 import os
+import sys
 import pytest
 import pytest_asyncio
 import psycopg
@@ -13,7 +14,7 @@ os.environ["DB_PASSWORD"] = "haidercpp"
 os.environ["DB_HOST"] = "localhost"
 os.environ["DB_PORT"] = "5432"
 os.environ["DB_NAME"] = "shiftmaster_test_db"
-os.environ["JWT_SECRET"] = "supersecrettestkey"
+os.environ["JWT_SECRET"] = "supersecrettestkeythatisatleast32byteslong"
 os.environ["JWT_ALGORITHM"] = "HS256"
 
 from app.main import app
@@ -35,7 +36,7 @@ def setup_test_db():
     # 2. Run Migrations
     migrations_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "migrations")
     subprocess.run([
-        "yoyo", "apply", "--batch", "--database", TEST_DB_URL, migrations_dir
+        sys.executable, "-m", "yoyo", "apply", "--batch", "--database", TEST_DB_URL, migrations_dir
     ], check=True)
     
     yield
@@ -61,6 +62,9 @@ async def async_client(db_pool):
         yield ac
         
     app.dependency_overrides.clear()
+
+TEST_PASSWORD = "password"
+TEST_HASHED_PASSWORD = "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"
 
 @pytest_asyncio.fixture
 async def admin_token(db_pool):
