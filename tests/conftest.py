@@ -78,8 +78,14 @@ async def admin_token(db_pool):
             await cur.execute("SELECT id FROM employees WHERE email = 'admin@test.com'")
             if not await cur.fetchone():
                 await cur.execute("""
-                    INSERT INTO employees (id, full_name, email, password_hash, role, status, created_at, updated_at)
-                    VALUES (%s, 'Admin Test', 'admin@test.com', %s, 'admin', 'active', NOW(), NOW())
+                    INSERT INTO employees (
+                        id, employee_code, first_name, last_name, gender, email, 
+                        password_hash, role, status, hire_date, created_at, updated_at
+                    )
+                    VALUES (
+                        %s, 'ADM-001', 'Admin', 'Test', 'male', 'admin@test.com', 
+                        %s, 'admin', 'active', CURRENT_DATE, NOW(), NOW()
+                    )
                 """, (user_id, TEST_HASHED_PASSWORD))
     
     token = create_access_token({"sub": user_id, "role": "admin"})
@@ -94,8 +100,14 @@ async def user_token(db_pool):
             await cur.execute("SELECT id FROM employees WHERE email = 'user@test.com'")
             if not await cur.fetchone():
                 await cur.execute("""
-                    INSERT INTO employees (id, full_name, email, password_hash, role, status, created_at, updated_at)
-                    VALUES (%s, 'User Test', 'user@test.com', %s, 'employee', 'active', NOW(), NOW())
+                    INSERT INTO employees (
+                        id, employee_code, first_name, last_name, gender, email, 
+                        password_hash, role, status, hire_date, created_at, updated_at
+                    )
+                    VALUES (
+                        %s, 'EMP-001', 'User', 'Test', 'male', 'user@test.com', 
+                        %s, 'employee', 'active', CURRENT_DATE, NOW(), NOW()
+                    )
                 """, (user_id, TEST_HASHED_PASSWORD))
     
     token = create_access_token({"sub": user_id, "role": "employee"})
