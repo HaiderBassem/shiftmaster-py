@@ -12,6 +12,9 @@ jobs:
     runs-on: self-hosted
 
     steps:
+      - name: chane the owner of the work folder
+        run: sudo chown -R $USER:$USER ~/actions-runner/_work/
+         
       - name: Check out repository
         uses: actions/checkout@v4
 
