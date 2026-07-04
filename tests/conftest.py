@@ -22,8 +22,10 @@ from app.api.deps import get_db_pool
 from app.core.security import create_access_token
 
 TEST_DB_NAME = "shiftmaster_test_db"
-DEFAULT_DB_URL = "postgresql://postgres:haidercpp@localhost:5432/postgres"
-TEST_DB_URL = f"postgresql://postgres:haidercpp@localhost:5432/{TEST_DB_NAME}"
+TEST_DB_HOST = os.environ.get("DB_HOST", "localhost")
+TEST_DB_PORT = os.environ.get("DB_PORT", "5432")
+DEFAULT_DB_URL = f"postgresql://postgres:haidercpp@{TEST_DB_HOST}:{TEST_DB_PORT}/postgres"
+TEST_DB_URL = f"postgresql://postgres:haidercpp@{TEST_DB_HOST}:{TEST_DB_PORT}/{TEST_DB_NAME}"
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_db():
@@ -46,14 +48,14 @@ def setup_test_db():
         with conn.cursor() as cur:
             cur.execute(f"DROP DATABASE IF EXISTS {TEST_DB_NAME} WITH (FORCE);")
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def db_pool():
     pool = AsyncConnectionPool(conninfo=TEST_DB_URL, min_size=1, max_size=5, open=False)
     await pool.open()
     yield pool
     await pool.close()
 
-@pytest_asyncio.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def async_client(db_pool):
     app.dependency_overrides[get_db_pool] = lambda: db_pool
     
