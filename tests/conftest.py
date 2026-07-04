@@ -71,7 +71,7 @@ TEST_HASHED_PASSWORD = "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga
 @pytest_asyncio.fixture
 async def admin_token(db_pool):
     # Insert an admin user into the DB
-    user_id = "test-admin-id"
+    user_id = "11111111-1111-1111-1111-111111111111"
     async with db_pool.connection() as conn:
         # Check if user exists
         async with conn.cursor() as cur:
@@ -94,7 +94,7 @@ async def admin_token(db_pool):
 @pytest_asyncio.fixture
 async def user_token(db_pool):
     # Insert a regular user into the DB
-    user_id = "test-user-id"
+    user_id = "22222222-2222-2222-2222-222222222222"
     async with db_pool.connection() as conn:
         async with conn.cursor() as cur:
             await cur.execute("SELECT id FROM employees WHERE email = 'user@test.com'")
