@@ -33,7 +33,7 @@ jobs:
           echo "JWT_ACCESS_EXPIRE_MIN=15" >> .env
           echo "JWT_REFRESH_EXPIRE_DAYS=7" >> .env
           echo "BCRYPT_COST=12" >> .env
-          echo "CORS_ALLOWED_ORIGINS=['http://localhost:3000','http://localhost:5173']" >> .env
+          echo 'CORS_ALLOWED_ORIGINS=["http://localhost:3000","http://localhost:5173"]' >> .env
           echo "UPLOAD_BASE_PATH=./uploads" >> .env
           echo "UPLOAD_MAX_FILE_SIZE_MB=5" >> .env
 
