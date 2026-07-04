@@ -1,0 +1,31 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: self-hosted
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Start Database
+        run: docker-compose up -d db
+
+      - name: Wait for Database to be ready
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          timeout 30s bash -c 'until docker-compose ps | grep "healthy"; do sleep 1; done'
+          echo "PostgreSQL is ready!"
+
+      - name: Build API Image
+        run: docker-compose build api
+
+      - name: Run Tests
+        run: docker-compose run api pytest -v
