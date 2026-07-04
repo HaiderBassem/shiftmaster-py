@@ -43,6 +43,9 @@ jobs:
           curl -SL https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64 -o ~/.docker/cli-plugins/docker-compose
           chmod +x ~/.docker/cli-plugins/docker-compose
 
+      - name: Fix Docker Permissions
+        run: sudo chmod 666 /var/run/docker.sock || true
+
       - name: Start Database
         run: docker compose up -d db
 
@@ -56,4 +59,4 @@ jobs:
         run: docker compose build api
 
       - name: Run Tests
-        run: docker compose run --rm api pytest -v
+        run: docker compose run --rm api bash -c "pip install '.[dev]' && pytest -v"
