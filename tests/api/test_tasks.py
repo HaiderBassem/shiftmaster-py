@@ -13,7 +13,7 @@ async def test_create_schedule_forbidden(async_client: AsyncClient, user_token: 
         "/api/v1/tasks/schedules",
         headers={"Authorization": f"Bearer {user_token}"},
         json={
-            "title": "Test Task",
+            "title": "Test task",
             "schedule_type": "daily_task"
         }
     )
