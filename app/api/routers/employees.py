@@ -41,8 +41,6 @@ async def create_employee(
         return await service.create(data)
     except ConflictError as e:
         raise HTTPException(status_code=409, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
 
 @router.get("/{employee_id}", response_model=EmployeeResponse)
 async def get_employee(

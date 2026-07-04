@@ -48,6 +48,29 @@ async def delete_template(
         await service.delete_template(template_id)
     except NotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e))
+# ── Weekly Schedules ──
+@router.post("/weekly", response_model=WeeklyScheduleResponse, status_code=status.HTTP_201_CREATED)
+async def create_weekly_schedule(
+    schedule_in: WeeklyScheduleCreate,
+    service: ScheduleService = Depends(get_schedule_service),
+    current_user: dict = Depends(get_current_user)
+) -> Any:
+    data = schedule_in.model_dump()
+    try:
+        return await service.create_weekly_schedule(data)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/weekly/{week_start}", response_model=WeeklyScheduleResponse)
+async def get_weekly_schedule(
+    week_start: date,
+    service: ScheduleService = Depends(get_schedule_service),
+    current_user: dict = Depends(get_current_user)
+) -> Any:
+    try:
+        return await service.get_weekly_schedule(week_start)
+    except NotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
 
 # ── Employee Shifts ──
 @router.get("/shifts", response_model=List[EmployeeShiftResponse])

@@ -37,7 +37,7 @@ class ScheduleRepository(BaseRepository):
         return await self.execute_returning(
             """INSERT INTO schedule_templates (employee_id, day_of_week, shift_id, is_off, valid_from, valid_to)
                VALUES (%(employee_id)s, %(day_of_week)s, %(shift_id)s, %(is_off)s, %(valid_from)s, %(valid_to)s)
-               RETURNING id, created_at, updated_at""",
+               RETURNING id, employee_id, day_of_week, shift_id, is_off, valid_from, valid_to, created_at, updated_at""",
             data,
         )
 
@@ -54,6 +54,22 @@ class ScheduleRepository(BaseRepository):
         return await self.execute(
             "DELETE FROM schedule_templates WHERE id = %s",
             (template_id,),
+        )
+
+    # ── Weekly Schedules ────────────────────────────────────────────────
+
+    async def get_weekly_schedule_by_date(self, week_start_date: date) -> dict[str, Any] | None:
+        return await self.fetch_row(
+            f"SELECT {_WEEKLY_SCHEDULE_COLUMNS} FROM weekly_schedule WHERE week_start_date = %s",
+            (week_start_date,)
+        )
+
+    async def create_weekly_schedule(self, data: dict[str, Any]) -> dict[str, Any] | None:
+        return await self.execute_returning(
+            f"""INSERT INTO weekly_schedule (week_start_date, week_end_date, template_id, status, notes, created_by)
+               VALUES (%(week_start_date)s, %(week_end_date)s, %(template_id)s, %(status)s, %(notes)s, %(created_by)s)
+               RETURNING {_WEEKLY_SCHEDULE_COLUMNS}""",
+            data,
         )
 
     async def upsert_template_for_day(self, employee_id: UUID, day_of_week: int, is_off: bool, shift_id: UUID | None) -> None:
@@ -92,7 +108,7 @@ class ScheduleRepository(BaseRepository):
         return await self.execute_returning(
             """INSERT INTO weekly_schedule (week_start_date, week_end_date, template_id, status, published_by, notes)
                VALUES (%(week_start_date)s, %(week_end_date)s, %(template_id)s, %(status)s, %(published_by)s, %(notes)s)
-               RETURNING id, created_at""",
+               RETURNING id, week_start_date, week_end_date, template_id, status, published_by, notes, created_at""",
             data,
         )
 
@@ -170,7 +186,7 @@ class ScheduleRepository(BaseRepository):
                ) VALUES (
                    %(schedule_id)s, %(employee_id)s, %(shift_id)s, %(shift_date)s, %(shift_status)s,
                    %(leave_reason)s, %(is_replacement)s, %(replaced_employee_id)s, %(replacement_approved_by)s, %(created_by)s
-               ) RETURNING id, created_at, updated_at""",
+               ) RETURNING id, schedule_id, employee_id, shift_id, shift_date, shift_status, leave_reason, is_replacement, replaced_employee_id, replacement_approved_by, created_by, check_in_time, check_out_time, actual_worked_hours, overtime_hours, created_at, updated_at""",
             data,
         )
 

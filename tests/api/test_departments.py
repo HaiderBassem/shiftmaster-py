@@ -13,7 +13,7 @@ async def test_create_department_user(async_client: AsyncClient, user_token: str
     response = await async_client.post(
         "/api/v1/departments/",
         headers={"Authorization": f"Bearer {user_token}"},
-        json={"name": "Test Department"}
+        json={"name": "Test Department", "department_code": "DPT-001"}
     )
     assert response.status_code == 403
 
@@ -22,7 +22,7 @@ async def test_create_department_admin(async_client: AsyncClient, admin_token: s
     response = await async_client.post(
         "/api/v1/departments/",
         headers={"Authorization": f"Bearer {admin_token}"},
-        json={"name": "Test Department"}
+        json={"name": "Test Department", "department_code": "DPT-002"}
     )
     assert response.status_code == 201
     data = response.json()

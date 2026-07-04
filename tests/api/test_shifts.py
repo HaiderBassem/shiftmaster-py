@@ -12,7 +12,7 @@ async def test_create_shift(async_client: AsyncClient, admin_token: str):
     dept_res = await async_client.post(
         "/api/v1/departments/",
         headers={"Authorization": f"Bearer {admin_token}"},
-        json={"name": "Shift Department"}
+        json={"name": "Shift Department", "department_code": "SHT-001"}
     )
     assert dept_res.status_code == 201
     dept_id = dept_res.json()["id"]
@@ -22,6 +22,7 @@ async def test_create_shift(async_client: AsyncClient, admin_token: str):
         headers={"Authorization": f"Bearer {admin_token}"},
         json={
             "name": "Morning Shift",
+            "shift_code": "SHT-001",
             "start_time": "08:00:00",
             "end_time": "16:00:00",
             "department_id": dept_id,

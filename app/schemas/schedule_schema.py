@@ -57,6 +57,9 @@ class EmployeeShiftBase(BaseModel):
 
 class EmployeeShiftCreate(EmployeeShiftBase):
     created_by: UUID | None = None
+    is_replacement: bool = False
+    replaced_employee_id: UUID | None = None
+    replacement_approved_by: UUID | None = None
 
 class EmployeeShiftUpdate(BaseModel):
     shift_id: UUID | None = None

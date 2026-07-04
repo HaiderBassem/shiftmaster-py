@@ -13,9 +13,8 @@ async def test_create_schedule_forbidden(async_client: AsyncClient, user_token: 
         "/api/v1/tasks/schedules",
         headers={"Authorization": f"Bearer {user_token}"},
         json={
-            "task_name": "Test Task",
-            "department_id": str(uuid.uuid4()),
-            "priority": "high"
+            "title": "Test Task",
+            "schedule_type": "daily_task"
         }
     )
     # user_token is a regular employee, cannot create schedule
@@ -27,7 +26,7 @@ async def test_create_schedule_admin(async_client: AsyncClient, admin_token: str
     dept_res = await async_client.post(
         "/api/v1/departments/",
         headers={"Authorization": f"Bearer {admin_token}"},
-        json={"name": "Tasks Dept"}
+        json={"name": "Tasks Dept", "department_code": "TSK-001"}
     )
     dept_id = dept_res.json()["id"]
 
@@ -35,16 +34,15 @@ async def test_create_schedule_admin(async_client: AsyncClient, admin_token: str
         "/api/v1/tasks/schedules",
         headers={"Authorization": f"Bearer {admin_token}"},
         json={
-            "task_name": "Test Schedule Task",
-            "department_id": dept_id,
-            "priority": "high",
-            "recurrence_pattern": "daily",
+            "title": "Test Schedule Task",
+            "schedule_type": "daily_task",
+            "recurrence": "daily",
             "is_active": True
         }
     )
     assert response.status_code == 201
     data = response.json()
-    assert data["task_name"] == "Test Schedule Task"
+    assert data["title"] == "Test Schedule Task"
     
     pytest.created_schedule_id = data["id"]
 

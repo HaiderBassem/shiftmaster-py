@@ -37,7 +37,7 @@ class ShiftService:
 
     async def update(self, shift_id: UUID, data: dict[str, Any]) -> dict[str, Any]:
         # Ensure it exists
-        await self.get_by_id(shift_id)
+        existing_shift = await self.get_by_id(shift_id)
         
         # If updating shift code, ensure it doesn't conflict with others
         if "shift_code" in data:
@@ -45,7 +45,8 @@ class ShiftService:
             if existing and existing["id"] != shift_id:
                 raise ConflictError(f"Shift code {data['shift_code']} is already in use")
 
-        affected = await self.repo.update(shift_id, data)
+        update_data = {**existing_shift, **data}
+        affected = await self.repo.update(shift_id, update_data)
         if affected == 0:
             raise NotFoundError("Shift not found during update")
             

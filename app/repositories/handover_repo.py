@@ -14,7 +14,7 @@ class HandoverRepository(BaseRepository):
                 department_id, creator_id, shift_summary, pending_issues, status
             ) VALUES (
                 %(department_id)s, %(creator_id)s, %(shift_summary)s, %(pending_issues)s, 'open'
-            ) RETURNING id, created_at, updated_at""",
+            ) RETURNING id, department_id, creator_id, shift_summary, pending_issues, status, claimed_by, done_by, created_at, updated_at""",
             data,
         )
 

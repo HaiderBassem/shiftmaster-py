@@ -66,7 +66,7 @@ async def async_client(db_pool):
     app.dependency_overrides.clear()
 
 TEST_PASSWORD = "password"
-TEST_HASHED_PASSWORD = "$2b$12$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQoeG6Lruj3vjPGga31lW"
+TEST_HASHED_PASSWORD = "$2b$12$Fb8nJwmZf9OQop2IxJMnZ.SMh4m91uqVOQL8.aFZ7hGXyZBWNMTDq"
 
 @pytest_asyncio.fixture
 async def admin_token(db_pool):

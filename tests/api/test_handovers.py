@@ -7,7 +7,7 @@ async def test_create_and_manage_handover(async_client: AsyncClient, admin_token
     dept_res = await async_client.post(
         "/api/v1/departments/",
         headers={"Authorization": f"Bearer {admin_token}"},
-        json={"name": "Handover Dept"}
+        json={"name": "Handover Dept", "department_code": "DPT-004"}
     )
     dept_id = dept_res.json()["id"]
 
@@ -15,10 +15,14 @@ async def test_create_and_manage_handover(async_client: AsyncClient, admin_token
         "/api/v1/employees/",
         headers={"Authorization": f"Bearer {admin_token}"},
         json={
-            "full_name": "Handover Emp",
+            "employee_code": "EMP-HND-1",
+            "first_name": "Handover",
+            "last_name": "Emp",
+            "gender": "male",
             "email": "handover@test.com",
-            "password": "pass",
+            "password": "password123",
             "role": "employee",
+            "hire_date": "2023-01-01",
             "department_id": dept_id
         }
     )
@@ -29,6 +33,7 @@ async def test_create_and_manage_handover(async_client: AsyncClient, admin_token
         headers={"Authorization": f"Bearer {admin_token}"},
         json={
             "name": "Handover Shift",
+            "shift_code": "SHT-004",
             "start_time": "12:00:00",
             "end_time": "20:00:00",
             "department_id": dept_id,
@@ -43,8 +48,8 @@ async def test_create_and_manage_handover(async_client: AsyncClient, admin_token
         headers={"Authorization": f"Bearer {admin_token}"},
         json={
             "department_id": dept_id,
-            "shift_id": shift_id,
-            "notes": "Important handover notes"
+            "shift_summary": "Morning shift went well",
+            "pending_issues": "Machine 3 is down"
         }
     )
     assert create_res.status_code == 201

@@ -15,10 +15,14 @@ class EmployeeStatus(StrEnum):
 
 
 class ShiftStatus(StrEnum):
-    SCHEDULED = "scheduled"
-    ON_LEAVE = "on_leave"
+    WORKING = "working"
     OFF = "off"
-    REPLACED = "replaced"
+    LEAVE = "leave"
+    SICK = "sick"
+    VACATION = "vacation"
+    TRAINING = "training"
+    BUSINESS_TRIP = "business_trip"
+    HOURLY = "hourly"
 
 
 class LeaveStatus(StrEnum):

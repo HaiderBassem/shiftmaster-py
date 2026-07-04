@@ -25,10 +25,14 @@ async def test_create_employee_forbidden(async_client: AsyncClient, user_token: 
         "/api/v1/employees/",
         headers={"Authorization": f"Bearer {user_token}"},
         json={
-            "full_name": "New Emp",
+            "employee_code": "EMP-001",
+            "first_name": "New",
+            "last_name": "Emp",
+            "gender": "male",
             "email": "newemp@test.com",
-            "password": "pass",
+            "password": "password123",
             "role": "employee",
+            "hire_date": "2023-01-01",
             "department_id": str(uuid.uuid4())
         }
     )
@@ -44,7 +48,7 @@ async def test_create_employee_admin(async_client: AsyncClient, admin_token: str
     dept_res = await async_client.post(
         "/api/v1/departments/",
         headers={"Authorization": f"Bearer {admin_token}"},
-        json={"name": "Emp Department"}
+        json={"name": "Emp Department", "department_code": "DPT-003"}
     )
     assert dept_res.status_code == 201
     dept_id = dept_res.json()["id"]
@@ -53,18 +57,23 @@ async def test_create_employee_admin(async_client: AsyncClient, admin_token: str
         "/api/v1/employees/",
         headers={"Authorization": f"Bearer {admin_token}"},
         json={
-            "full_name": "New Emp",
-            "email": "newemp@test.com",
-            "password": "pass",
+            "employee_code": "EMP-002",
+            "first_name": "New",
+            "last_name": "Emp",
+            "gender": "female",
+            "email": "newemp2@test.com",
+            "password": "password123",
             "role": "employee",
+            "hire_date": "2023-01-01",
             "department_id": dept_id,
             "status": "active"
         }
     )
     assert response.status_code == 201
     data = response.json()
-    assert data["full_name"] == "New Emp"
-    assert data["email"] == "newemp@test.com"
+    assert data["first_name"] == "New"
+    assert data["last_name"] == "Emp"
+    assert data["email"] == "newemp2@test.com"
     assert "password" not in data  # ensure password is not returned
     
     pytest.created_emp_id = data["id"]
@@ -91,10 +100,10 @@ async def test_update_employee(async_client: AsyncClient, admin_token: str):
     response = await async_client.put(
         f"/api/v1/employees/{emp_id}",
         headers={"Authorization": f"Bearer {admin_token}"},
-        json={"full_name": "Updated Name"}
+        json={"first_name": "Updated", "last_name": "Name"}
     )
     assert response.status_code == 200
-    assert response.json()["full_name"] == "Updated Name"
+    assert response.json()["first_name"] == "Updated"
 
 @pytest.mark.asyncio
 async def test_delete_employee(async_client: AsyncClient, admin_token: str):

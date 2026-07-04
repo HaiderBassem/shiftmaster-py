@@ -17,7 +17,7 @@ class TaskScheduleBase(BaseModel):
     is_active: bool = True
 
 class TaskScheduleCreate(TaskScheduleBase):
-    created_by: UUID
+    pass
 
 class TaskScheduleUpdate(BaseModel):
     title: str | None = None

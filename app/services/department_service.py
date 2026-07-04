@@ -41,9 +41,10 @@ class DepartmentService:
 
     async def update(self, department_id: UUID, data: dict[str, Any]) -> dict[str, Any]:
         # Ensure it exists
-        await self.get_by_id(department_id)
+        existing = await self.get_by_id(department_id)
         
-        affected = await self.repo.update(department_id, data)
+        update_data = {**existing, **data}
+        affected = await self.repo.update(department_id, update_data)
         if affected == 0:
             raise NotFoundError("Department not found during update")
             

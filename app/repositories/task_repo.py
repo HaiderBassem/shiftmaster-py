@@ -65,7 +65,7 @@ class TaskRepository(BaseRepository):
                ) VALUES (
                    %(title)s, %(description)s, %(schedule_type)s, %(board_id)s, %(shift_id)s, %(recurrence)s,
                    %(recurrence_days)s, %(max_assignees)s, %(is_active)s, %(created_by)s
-               ) RETURNING id, created_at, updated_at""",
+               ) RETURNING id, title, description, schedule_type, board_id, shift_id, recurrence, recurrence_days, max_assignees, is_active, created_by, created_at, updated_at""",
             data,
         )
 

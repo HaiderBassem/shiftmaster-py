@@ -24,7 +24,7 @@ async def create_handover(
     current_user: dict = Depends(get_current_user)
 ) -> Any:
     data = handover_in.model_dump()
-    data["created_by"] = current_user["id"]
+    data["creator_id"] = current_user["id"]
     try:
         return await service.create(data)
     except Exception as e:

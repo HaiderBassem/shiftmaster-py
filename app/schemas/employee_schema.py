@@ -10,7 +10,7 @@ class EmployeeBase(BaseModel):
     employee_code: str
     first_name: str
     last_name: str
-    gender: str | None = None
+    gender: str
     phone: str | None = None
     email: EmailStr
     hire_date: date
