@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   test:
     name: Run Tests
@@ -59,7 +63,7 @@ jobs:
           echo "PostgreSQL is ready!"
 
       - name: Build API Image
-        run: docker compose build api
+        run: docker build -t ghcr.io/haiderbassem/shiftmaster-py:latest .
 
       - name: Run Tests
         run: docker compose run --rm api bash -c "pip install '.[dev]' && pytest -v"
@@ -69,9 +73,16 @@ jobs:
     runs-on: self-hosted
     if: github.ref == 'refs/heads/main'
     steps:
+      - name: Login to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+        
+      - name: Push API Image to GHCR
+        run: docker push ghcr.io/haiderbassem/shiftmaster-py:latest
+
       - name: Deploy to Server directly
         run: |
           cd ~/actions-runner/_work/shiftmaster-py/shiftmaster-py
           git pull origin main
+          docker compose pull
           docker compose down
-          docker compose up -d --build
+          docker compose up -d
