@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   api:
-    build: .
+    image: ghcr.io/haiderbassem/shiftmaster-py:latest
     container_name: shiftmaster_api
     ports:
       - "9292:8000"
@@ -19,7 +19,7 @@ services:
     image: postgres:15-alpine
     container_name: shiftmaster_db
     ports:
-      - "4242:5432"
+      - "5432:5432"
     environment:
       - POSTGRES_USER=${DB_USER:-postgres}
       - POSTGRES_PASSWORD=${DB_PASSWORD:-haidercpp}
