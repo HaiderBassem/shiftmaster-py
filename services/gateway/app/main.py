@@ -142,13 +142,13 @@ async def forward_request(request: Request, target_url: str) -> Response:
         logger.error("gateway.request_failed", exc_info=exc, url=url)
         raise HTTPException(status_code=502, detail="Bad Gateway")
 
-@app.api_route("/api/v1/auth/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
-@app.api_route("/api/v1/employees/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
-@app.api_route("/api/v1/departments/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+@app.api_route("/api/v1/auth/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"], include_in_schema=False)
+@app.api_route("/api/v1/employees/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"], include_in_schema=False)
+@app.api_route("/api/v1/departments/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"], include_in_schema=False)
 async def proxy_auth(request: Request):
     return await forward_request(request, settings.auth_service_url)
 
-@app.api_route("/api/v1/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+@app.api_route("/api/v1/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"], include_in_schema=False)
 async def proxy_monolith(request: Request, path: str):
     if path.startswith("schedules") or path.startswith("shifts") or path.startswith("handovers"):
         return await forward_request(request, settings.schedule_service_url)
