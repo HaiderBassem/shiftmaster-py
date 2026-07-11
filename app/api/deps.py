@@ -12,20 +12,9 @@ from app.services.employee_service import EmployeeService
 from app.repositories.department_repo import DepartmentRepository
 from app.services.department_service import DepartmentService
 
-from app.repositories.shift_repo import ShiftRepository
-from app.services.shift_service import ShiftService
-
-from app.services.task_service import TaskService
-from app.services.notification_service import NotificationService
-from app.repositories.handover_repo import HandoverRepository
-from app.services.handover_service import HandoverService
-
-from app.repositories.schedule_repo import ScheduleRepository
-from app.services.schedule_service import ScheduleService
-
 from app.repositories.task_repo import TaskRepository
 from app.services.task_service import TaskService
-
+from app.services.notification_service import NotificationService
 from app.repositories.audit_repo import AuditRepository
 from app.services.audit_service import AuditService
 
@@ -52,15 +41,6 @@ def get_employee_repo(conn: AsyncConnection = Depends(get_db_connection)) -> Emp
 def get_department_repo(conn: AsyncConnection = Depends(get_db_connection)) -> DepartmentRepository:
     return DepartmentRepository(conn)
 
-def get_shift_repo(conn: AsyncConnection = Depends(get_db_connection)) -> ShiftRepository:
-    return ShiftRepository(conn)
-
-def get_handover_repo(conn: AsyncConnection = Depends(get_db_connection)) -> HandoverRepository:
-    return HandoverRepository(conn)
-
-def get_schedule_repo(conn: AsyncConnection = Depends(get_db_connection)) -> ScheduleRepository:
-    return ScheduleRepository(conn)
-
 def get_task_repo(conn: AsyncConnection = Depends(get_db_connection)) -> TaskRepository:
     return TaskRepository(conn)
 
@@ -74,15 +54,6 @@ def get_employee_service(repo: EmployeeRepository = Depends(get_employee_repo)) 
 
 def get_department_service(repo: DepartmentRepository = Depends(get_department_repo)) -> DepartmentService:
     return DepartmentService(repo)
-
-def get_shift_service(repo: ShiftRepository = Depends(get_shift_repo)) -> ShiftService:
-    return ShiftService(repo)
-
-def get_handover_service(repo: HandoverRepository = Depends(get_handover_repo)) -> HandoverService:
-    return HandoverService(repo)
-
-def get_schedule_service(repo: ScheduleRepository = Depends(get_schedule_repo)) -> ScheduleService:
-    return ScheduleService(repo)
 
 def get_task_service(repo: TaskRepository = Depends(get_task_repo)) -> TaskService:
     return TaskService(repo)
