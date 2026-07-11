@@ -4,7 +4,6 @@ metadata:
   name: gateway
   namespace: shiftmaster
 spec:
-  type: LoadBalancer
   ports:
   - port: 8000
     targetPort: 8000

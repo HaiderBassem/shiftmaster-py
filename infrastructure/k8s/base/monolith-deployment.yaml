@@ -19,11 +19,11 @@ spec:
         imagePullPolicy: Always
         env:
         - name: DB_HOST
-          value: "db"
+          value: "prod-db"
         - name: REDIS_URL
-          value: "redis://redis:6379/0"
+          value: "redis://prod-redis:6379/0"
         - name: RABBITMQ_URL
-          value: "amqp://guest:guest@rabbitmq:5672/"
+          value: "amqp://guest:guest@prod-rabbitmq:5672/"
         - name: DB_PASSWORD
           value: "supersecretpassword"
         - name: DB_USER
@@ -33,12 +33,12 @@ spec:
         - name: JWT_SECRET
           value: "supersecretjwtkeythatislongenough32chars"
         - name: AUTH_SERVICE_URL
-          value: "http://auth:8000"
+          value: "http://prod-auth:8000"
         - name: SCHEDULE_SERVICE_URL
-          value: "http://schedule:8000"
+          value: "http://prod-schedule:8000"
         - name: NOTIFICATION_SERVICE_URL
-          value: "http://notifications:8000"
+          value: "http://prod-notifications:8000"
         - name: MONOLITH_URL
-          value: "http://monolith:8000"
+          value: "http://prod-monolith:8000"
         ports:
         - containerPort: 8000

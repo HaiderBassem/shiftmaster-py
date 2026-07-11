@@ -11,8 +11,7 @@ from app.core.config import settings
 from app.db.pool import create_pool, close_pool
 
 from shiftmaster_common.logging.structured import configure_logging, get_logger
-from shiftmaster_common.middleware.correlation_id import CorrelationIdMiddleware
-from shiftmaster_common.middleware.error_handler import app_exception_handler, validation_exception_handler, unhandled_exception_handler
+from shiftmaster_common.middleware.setup import CorrelationIdMiddleware, app_exception_handler, validation_exception_handler, unhandled_exception_handler
 from fastapi.exceptions import RequestValidationError
 from shiftmaster_common.exceptions.app_exceptions import AppException
 
