@@ -23,7 +23,7 @@ spec:
         - name: REDIS_URL
           value: "redis://prod-redis:6379/0"
         - name: RABBITMQ_URL
-          value: "amqp://guest:guest@prod-rabbitmq:5672/"
+          value: "amqp://shiftadmin:shiftpass@prod-rabbitmq:5672/"
         - name: DB_PASSWORD
           value: "supersecretpassword"
         - name: DB_USER
@@ -41,4 +41,4 @@ spec:
         - name: MONOLITH_URL
           value: "http://prod-monolith:8004"
         ports:
-        - containerPort: 8000
+        - containerPort: 9000

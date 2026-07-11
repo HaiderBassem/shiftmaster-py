@@ -19,11 +19,22 @@ spec:
         image: rabbitmq:3-management-alpine
         env:
         - name: RABBITMQ_DEFAULT_USER
-          value: "guest"
+          value: "shiftadmin"
         - name: RABBITMQ_DEFAULT_PASS
-          value: "guest"
+          value: "shiftpass"
         ports:
         - containerPort: 5672
           name: amqp
         - containerPort: 15672
           name: management
+        volumeMounts:
+        - name: rabbitmq-data
+          mountPath: /var/lib/rabbitmq
+  volumeClaimTemplates:
+  - metadata:
+      name: rabbitmq-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 2Gi
