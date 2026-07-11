@@ -25,6 +25,6 @@ USER appuser
 EXPOSE 8002
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD python -c "import httpx; httpx.get('http://localhost:8002/api/v1/schedule/health').raise_for_status()" || exit 1
+    CMD python -c "import httpx; httpx.get('http://localhost:8002/health').raise_for_status()" || exit 1
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8002", "--workers", "2"]

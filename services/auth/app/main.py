@@ -67,7 +67,7 @@ app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(employees.router, prefix="/api/v1/employees", tags=["Employees"])
 app.include_router(departments.router, prefix="/api/v1/departments", tags=["Departments"])
 
-@app.get("/api/v1/auth/health", tags=["Health"])
+@app.get("/health", tags=["Health"])
 async def health_check():
     return {"status": "ok", "service": "auth"}
 

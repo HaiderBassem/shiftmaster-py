@@ -68,7 +68,7 @@ app.include_router(schedules.router, prefix="/api/v1/schedules", tags=["Schedule
 app.include_router(shifts.router, prefix="/api/v1/shifts", tags=["Shifts"])
 app.include_router(handovers.router, prefix="/api/v1/handovers", tags=["Handovers"])
 
-@app.get("/api/v1/schedules/health", tags=["Health"])
+@app.get("/health", tags=["Health"])
 async def health_check():
     return {"status": "ok", "service": "schedule"}
 
