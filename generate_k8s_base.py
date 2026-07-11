@@ -166,7 +166,7 @@ spec:
 
 # Add microservices
 services_ports = {
-    "gateway": 80,
+    "gateway": 9000,
     "auth": 8001,
     "schedule": 8002,
     "notifications": 8003,
