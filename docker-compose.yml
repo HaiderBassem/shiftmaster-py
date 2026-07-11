@@ -90,9 +90,12 @@ services:
       - .env
     environment:
       DB_HOST: db
+      REDIS_URL: redis://redis:6379/0
       RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy

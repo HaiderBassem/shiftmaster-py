@@ -154,17 +154,6 @@ async def forward_request(request: Request, target_url: str) -> Response:
 async def proxy_auth(request: Request):
     return await forward_request(request, settings.auth_service_url)
 
-@app.api_route("/api/v1/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"], include_in_schema=False)
-async def proxy_monolith(request: Request, path: str):
-    if path.startswith("schedules") or path.startswith("shifts") or path.startswith("handovers"):
-        return await forward_request(request, settings.schedule_service_url)
-    
-    if path.startswith("audit") or path.startswith("notifications"):
-        return await forward_request(request, settings.notification_service_url)
-
-    # Anything else goes to the remaining monolith
-    return await forward_request(request, settings.monolith_url)
-
 @app.get("/api/v1/schedule/openapi.json", include_in_schema=False)
 async def proxy_schedule_openapi(request: Request):
     return await forward_request(request, settings.schedule_service_url)
@@ -175,6 +164,17 @@ async def proxy_notifications_openapi(request: Request):
 
 @app.get("/api/v1/monolith/openapi.json", include_in_schema=False)
 async def proxy_monolith_openapi(request: Request):
+    return await forward_request(request, settings.monolith_url)
+
+@app.api_route("/api/v1/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"], include_in_schema=False)
+async def proxy_monolith(request: Request, path: str):
+    if path.startswith("schedules") or path.startswith("shifts") or path.startswith("handovers"):
+        return await forward_request(request, settings.schedule_service_url)
+    
+    if path.startswith("audit") or path.startswith("notifications"):
+        return await forward_request(request, settings.notification_service_url)
+
+    # Anything else goes to the remaining monolith
     return await forward_request(request, settings.monolith_url)
 
 @app.get("/health", tags=["Health"])
