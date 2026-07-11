@@ -12,6 +12,7 @@ are never locked out after a brief flood of failed attempts.
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from typing import Any
+from uuid import UUID
 
 from app.schemas.auth_schema import Token, LoginRequest
 from app.schemas.employee_schema import EmployeeResponse
@@ -135,6 +136,17 @@ async def login(
         403: {"description": "Not enough privileges"}
     }
 )
-async def get_me(current_user: dict = Depends(get_current_user)) -> Any:
+async def get_me(
+    current_user: dict = Depends(get_current_user),
+    employee_service: EmployeeService = Depends(get_employee_service)
+) -> Any:
     """Return the currently authenticated user's profile."""
-    return current_user
+    try:
+        user_id = UUID(current_user["id"])
+        user = await employee_service.get_by_id(user_id)
+        return user
+    except (NotFoundError, ValueError):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
