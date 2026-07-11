@@ -62,11 +62,23 @@ jobs:
           timeout 30s bash -c 'until docker compose ps | grep "healthy"; do sleep 1; done'
           echo "PostgreSQL is ready!"
 
-      - name: Build API Image
-        run: docker build -t ghcr.io/haiderbassem/shiftmaster-py:latest .
+      - name: Build Monolith Image
+        run: docker build -t ghcr.io/haiderbassem/shiftmaster-py-monolith:latest -f Dockerfile .
+      
+      - name: Build Auth Image
+        run: docker build -t ghcr.io/haiderbassem/shiftmaster-py-auth:latest -f services/auth/Dockerfile .
+
+      - name: Build Schedule Image
+        run: docker build -t ghcr.io/haiderbassem/shiftmaster-py-schedule:latest -f services/schedule/Dockerfile .
+
+      - name: Build Gateway Image
+        run: docker build -t ghcr.io/haiderbassem/shiftmaster-py-gateway:latest -f services/gateway/Dockerfile .
+
+      - name: Build Notifications Image
+        run: docker build -t ghcr.io/haiderbassem/shiftmaster-py-notifications:latest -f services/notifications/Dockerfile .
 
       - name: Run Tests
-        run: docker compose run --rm api bash -c "pip install '.[dev]' && pytest -v"
+        run: docker compose run --rm monolith bash -c "pip install '.[dev]' && pytest -v"
 
   deploy:
     needs: test
@@ -76,13 +88,16 @@ jobs:
       - name: Login to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
         
-      - name: Push API Image to GHCR
-        run: docker push ghcr.io/haiderbassem/shiftmaster-py:latest
+      - name: Push All Images to GHCR
+        run: |
+          docker push ghcr.io/haiderbassem/shiftmaster-py-monolith:latest
+          docker push ghcr.io/haiderbassem/shiftmaster-py-auth:latest
+          docker push ghcr.io/haiderbassem/shiftmaster-py-schedule:latest
+          docker push ghcr.io/haiderbassem/shiftmaster-py-gateway:latest
+          docker push ghcr.io/haiderbassem/shiftmaster-py-notifications:latest
 
-      - name: Deploy to Server directly
+      - name: Deploy to Server via Kubernetes (K3s)
         run: |
           cd ~/actions-runner/_work/shiftmaster-py/shiftmaster-py
           git pull origin main
-          docker compose pull
-          docker compose down
-          docker compose up -d
+          kubectl apply -k infrastructure/k8s/overlays/prod

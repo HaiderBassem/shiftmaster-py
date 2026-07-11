@@ -66,6 +66,15 @@ class TaskService:
         await self.repo.delete_assignment(assignment_id)
 
     # ── Executions ──
+
+    async def get_execution_assigned_employee_id(self, execution_id: UUID) -> UUID | None:
+        """
+        Return the UUID of the employee assigned to *execution_id*, or None
+        if the execution doesn't exist.  Used for authorisation in routers.
+        """
+        row = await self.repo.get_execution_assigned_employee(execution_id)
+        return row["employee_id"] if row else None
+
     async def start_execution(self, execution_id: UUID) -> None:
         affected = await self.repo.start_execution(execution_id)
         if affected == 0:

@@ -1,0 +1,19 @@
+[project]
+name = "shiftmaster-common"
+version = "0.1.0"
+description = "Shared libraries for ShiftMaster microservices"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.9",
+    "pydantic-settings>=2.5",
+    "redis>=5.0",
+    "structlog>=24.4",
+    "asgi-correlation-id>=4.3",
+    "fastapi>=0.115",
+    "aio-pika>=9.4",
+    "pyjwt>=2.9",
+    "passlib[bcrypt]>=1.7.4",
+]
+
+[tool.setuptools.packages.find]
+include = ["shiftmaster_common*"]

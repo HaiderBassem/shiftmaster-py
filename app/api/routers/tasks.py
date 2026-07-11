@@ -84,14 +84,12 @@ async def get_board_view(
 async def start_execution(
     execution_id: UUID,
     service: TaskService = Depends(get_task_service),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
 ) -> dict:
-    # Check if assigned to current user
-    assigned_emp_id = await service.repo.fetch_scalar(
-        "SELECT ta.employee_id FROM task_assignments ta JOIN task_executions te ON te.assignment_id = ta.id WHERE te.id = %s",
-        (execution_id,)
-    )
-    if assigned_emp_id != current_user["id"]:
+    assigned_employee_id = await service.get_execution_assigned_employee_id(execution_id)
+    if assigned_employee_id is None:
+        raise HTTPException(status_code=404, detail="Task execution not found")
+    if str(assigned_employee_id) != str(current_user["id"]):
         raise HTTPException(status_code=403, detail="You can only start tasks assigned to you")
 
     try:
@@ -106,14 +104,12 @@ async def complete_execution(
     completion_type: str,
     notes: str | None = None,
     service: TaskService = Depends(get_task_service),
-    current_user: dict = Depends(get_current_user)
+    current_user: dict = Depends(get_current_user),
 ) -> dict:
-    # Check if assigned to current user
-    assigned_emp_id = await service.repo.fetch_scalar(
-        "SELECT ta.employee_id FROM task_assignments ta JOIN task_executions te ON te.assignment_id = ta.id WHERE te.id = %s",
-        (execution_id,)
-    )
-    if assigned_emp_id != current_user["id"]:
+    assigned_employee_id = await service.get_execution_assigned_employee_id(execution_id)
+    if assigned_employee_id is None:
+        raise HTTPException(status_code=404, detail="Task execution not found")
+    if str(assigned_employee_id) != str(current_user["id"]):
         raise HTTPException(status_code=403, detail="You can only complete tasks assigned to you")
 
     try:

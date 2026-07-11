@@ -1,36 +1,189 @@
-version: '3.8'
+# docker-compose.yml  —  Local development stack
+# Phase 0: FastAPI + Postgres + Redis
+# Phase 1 addition: uncomment the rabbitmq service block below
 
 services:
-  api:
-    image: ghcr.io/haiderbassem/shiftmaster-py:latest
-    container_name: shiftmaster_api
-    ports:
-      - "9292:8000"
+
+  # ── Monolith (Remaining Services) ──────────────────────────────────────
+  monolith:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: shiftmaster_monolith
     env_file:
       - .env
+    environment:
+      DB_HOST: db
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
     depends_on:
       db:
         condition: service_healthy
-    volumes:
-      - .:/app
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
 
+  # ── Auth Service ───────────────────────────────────────────────────────
+  auth:
+    build:
+      context: .
+      dockerfile: services/auth/Dockerfile
+    container_name: shiftmaster_auth
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./services/auth:/app/services/auth
+      - ./shared:/shared
+    working_dir: /app/services/auth
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+  # ── Schedule Service ───────────────────────────────────────────────────
+  schedule:
+    build:
+      context: .
+      dockerfile: services/schedule/Dockerfile
+    container_name: shiftmaster_schedule
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      REDIS_URL: redis://redis:6379/0
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./services/schedule:/app/services/schedule
+      - ./shared:/shared
+    working_dir: /app/services/schedule
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+  # ── Notification Service ───────────────────────────────────────────────
+  notifications:
+    build:
+      context: .
+      dockerfile: services/notifications/Dockerfile
+    container_name: shiftmaster_notifications
+    env_file:
+      - .env
+    environment:
+      DB_HOST: db
+      RABBITMQ_URL: amqp://guest:guest@rabbitmq:5672/
+    depends_on:
+      db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./services/notifications:/app/services/notifications
+      - ./shared:/shared
+    working_dir: /app/services/notifications
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+  # ── API Gateway ────────────────────────────────────────────────────────
+  gateway:
+    build:
+      context: .
+      dockerfile: services/gateway/Dockerfile
+    container_name: shiftmaster_gateway
+    ports:
+      - "9292:8000"
+    environment:
+      AUTH_SERVICE_URL: http://auth:8000
+      MONOLITH_URL: http://monolith:8000
+      SCHEDULE_SERVICE_URL: http://schedule:8000
+      NOTIFICATION_SERVICE_URL: http://notifications:8000
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      - auth
+      - schedule
+      - notifications
+      - monolith
+    volumes:
+      - ./services/gateway:/app/services/gateway
+      - ./shared:/shared
+    working_dir: /app/services/gateway
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+  # ── PostgreSQL ───────────────────────────────────────────────────────────
   db:
     image: postgres:15-alpine
     container_name: shiftmaster_db
-    # ports:
-    #   - "5432:5432"
+    ports:
+      - "5432:5432"   # exposed for local tooling (pgAdmin, DataGrip, etc.)
     environment:
-      - POSTGRES_USER=${DB_USER:-postgres}
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-haidercpp}
-      - POSTGRES_DB=${DB_NAME:-shiftmaster_dbsm}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-shiftmaster_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-shiftmaster_dbsm}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres} -d ${DB_NAME:-shiftmaster_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
+
+  # ── Redis ────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: shiftmaster_redis
+    ports:
+      - "6379:6379"   # exposed for local introspection (redis-cli, RedisInsight)
+    command: >
+      redis-server
+      --maxmemory 128mb
+      --maxmemory-policy allkeys-lru
+      --save ""
+      --appendonly no
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  # ── RabbitMQ (Phase 1) ───────────────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: shiftmaster_rabbitmq
+    ports:
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # Management UI → http://localhost:15672
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+  rabbitmq_data:

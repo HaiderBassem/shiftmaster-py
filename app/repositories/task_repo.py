@@ -468,3 +468,16 @@ class TaskRepository(BaseRepository):
             ON CONFLICT (assignment_id) DO NOTHING
         """
         await self.execute(query, (from_date, to_date, employee_id, employee_id, from_date, to_date))
+
+    async def get_execution_assigned_employee(self, execution_id: UUID) -> dict | None:
+        """
+        Return the employee_id and assignment_id for a given execution.
+        Used for authorisation checks (only the assigned employee may act).
+        """
+        return await self.fetch_one(
+            """SELECT ta.employee_id, ta.id AS assignment_id
+               FROM task_assignments ta
+               JOIN task_executions te ON te.assignment_id = ta.id
+               WHERE te.id = %s""",
+            (execution_id,),
+        )

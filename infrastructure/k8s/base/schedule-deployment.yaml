@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: schedule
+  namespace: shiftmaster
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: schedule
+  template:
+    metadata:
+      labels:
+        app: schedule
+    spec:
+      containers:
+      - name: schedule
+        image: ghcr.io/haiderbassem/shiftmaster-py-schedule:latest
+        imagePullPolicy: Always
+        env:
+        - name: DB_HOST
+          value: "db"
+        - name: REDIS_URL
+          value: "redis://redis:6379/0"
+        - name: RABBITMQ_URL
+          value: "amqp://guest:guest@rabbitmq:5672/"
+        - name: DB_PASSWORD
+          value: "supersecretpassword"
+        - name: DB_USER
+          value: "shift_py"
+        - name: DB_NAME
+          value: "shift_master_py_db"
+        - name: JWT_SECRET
+          value: "supersecretjwtkeythatislongenough32chars"
+        - name: AUTH_SERVICE_URL
+          value: "http://auth:8000"
+        - name: SCHEDULE_SERVICE_URL
+          value: "http://schedule:8000"
+        - name: NOTIFICATION_SERVICE_URL
+          value: "http://notifications:8000"
+        - name: MONOLITH_URL
+          value: "http://monolith:8000"
+        ports:
+        - containerPort: 8000

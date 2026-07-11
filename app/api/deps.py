@@ -1,11 +1,10 @@
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi import Depends, HTTPException, status, Header
 from psycopg_pool import AsyncConnectionPool
 from psycopg import AsyncConnection
-import jwt
+from redis.asyncio import Redis
 
 import app.db.pool as db_module
-from app.core.security import verify_token
+from app.core.redis import get_redis as _get_redis
 
 from app.repositories.employee_repo import EmployeeRepository
 from app.services.employee_service import EmployeeService
@@ -16,6 +15,8 @@ from app.services.department_service import DepartmentService
 from app.repositories.shift_repo import ShiftRepository
 from app.services.shift_service import ShiftService
 
+from app.services.task_service import TaskService
+from app.services.notification_service import NotificationService
 from app.repositories.handover_repo import HandoverRepository
 from app.services.handover_service import HandoverService
 
@@ -28,7 +29,7 @@ from app.services.task_service import TaskService
 from app.repositories.audit_repo import AuditRepository
 from app.services.audit_service import AuditService
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/swagger-login")
+
 
 def get_db_pool() -> AsyncConnectionPool:
     if db_module.pool is None:
@@ -38,6 +39,10 @@ def get_db_pool() -> AsyncConnectionPool:
 async def get_db_connection(pool: AsyncConnectionPool = Depends(get_db_pool)) -> AsyncConnection:
     async with pool.connection() as conn:
         yield conn
+
+def get_redis_client() -> Redis:
+    """FastAPI dependency — returns the shared Redis client."""
+    return _get_redis()
 
 # Repositories 
 
@@ -82,37 +87,32 @@ def get_schedule_service(repo: ScheduleRepository = Depends(get_schedule_repo)) 
 def get_task_service(repo: TaskRepository = Depends(get_task_repo)) -> TaskService:
     return TaskService(repo)
 
+def get_notification_service() -> NotificationService:
+    return NotificationService()
+
 def get_audit_service(repo: AuditRepository = Depends(get_audit_repo)) -> AuditService:
     return AuditService(repo)
 
 # Authentication 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    x_user_id: str | None = Header(default=None, alias="X-User-Id"),
     employee_service: EmployeeService = Depends(get_employee_service)
 ) -> dict:
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
+    if not x_user_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing X-User-Id header",
+        )
     try:
-        payload = verify_token(token)
-        user_id_str: str = payload.get("sub")
-        if user_id_str is None:
-            raise credentials_exception
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=401, detail="Token has expired")
-    except jwt.InvalidTokenError:
-        raise credentials_exception
-
-    try:
-        user = await employee_service.get_by_id(user_id_str)
+        user = await employee_service.get_by_id(x_user_id)
         if user["status"] != "active":
             raise HTTPException(status_code=403, detail="Inactive user")
         return user
+    except HTTPException:
+        raise
     except Exception:
-        raise credentials_exception
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid user")
 
 class RequireRoles:
     def __init__(self, allowed_roles: list[str]):

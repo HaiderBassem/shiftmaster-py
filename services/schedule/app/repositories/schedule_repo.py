@@ -56,22 +56,6 @@ class ScheduleRepository(BaseRepository):
             (template_id,),
         )
 
-    # ── Weekly Schedules ────────────────────────────────────────────────
-
-    async def get_weekly_schedule_by_date(self, week_start_date: date) -> dict[str, Any] | None:
-        return await self.fetch_row(
-            f"SELECT {_WEEKLY_SCHEDULE_COLUMNS} FROM weekly_schedule WHERE week_start_date = %s",
-            (week_start_date,)
-        )
-
-    async def create_weekly_schedule(self, data: dict[str, Any]) -> dict[str, Any] | None:
-        return await self.execute_returning(
-            f"""INSERT INTO weekly_schedule (week_start_date, week_end_date, template_id, status, notes, created_by)
-               VALUES (%(week_start_date)s, %(week_end_date)s, %(template_id)s, %(status)s, %(notes)s, %(created_by)s)
-               RETURNING {_WEEKLY_SCHEDULE_COLUMNS}""",
-            data,
-        )
-
     async def upsert_template_for_day(self, employee_id: UUID, day_of_week: int, is_off: bool, shift_id: UUID | None) -> None:
         # Attempt update
         affected = await self.execute(

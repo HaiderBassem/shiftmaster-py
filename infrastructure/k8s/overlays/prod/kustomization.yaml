@@ -1,0 +1,31 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- ../../base
+
+namePrefix: prod-
+
+# Example patch to increase replicas for production
+patches:
+- target:
+    kind: Deployment
+    name: gateway
+  patch: |-
+    - op: replace
+      path: /spec/replicas
+      value: 3
+- target:
+    kind: Deployment
+    name: auth
+  patch: |-
+    - op: replace
+      path: /spec/replicas
+      value: 2
+- target:
+    kind: Deployment
+    name: monolith
+  patch: |-
+    - op: replace
+      path: /spec/replicas
+      value: 2

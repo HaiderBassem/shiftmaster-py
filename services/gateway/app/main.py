@@ -1,0 +1,113 @@
+import httpx
+from fastapi import FastAPI, Request, Response, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from asgi_correlation_id import CorrelationIdMiddleware, correlation_id
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception_type
+
+from shiftmaster_common.middleware.setup import unhandled_exception_handler
+from shiftmaster_common.logging.structured import get_logger
+from shiftmaster_common.security.jwt_utils import verify_token
+import jwt
+from app.core.config import settings
+
+logger = get_logger(__name__)
+
+app = FastAPI(
+    title="ShiftMaster API Gateway",
+    version="1.0.0",
+)
+
+app.add_exception_handler(Exception, unhandled_exception_handler)
+app.add_middleware(CorrelationIdMiddleware)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Should be configurable in prod
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*", "X-Correlation-ID"],
+    expose_headers=["X-Correlation-ID"],
+)
+
+# Shared httpx client
+client = httpx.AsyncClient(timeout=30.0)
+
+# Circuit breaker / retry for inter-service calls
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=1, min=1, max=5),
+    retry=retry_if_exception_type(httpx.RequestError),
+    reraise=True
+)
+async def forward_request(request: Request, target_url: str) -> Response:
+    url = f"{target_url}{request.url.path}?{request.url.query}" if request.url.query else f"{target_url}{request.url.path}"
+    
+    headers = dict(request.headers)
+    headers.pop("host", None)
+    
+    # Inject correlation ID
+    cid = correlation_id.get()
+    if cid:
+        headers["X-Correlation-ID"] = cid
+
+    # Verify JWT for non-public routes
+    public_paths = [
+        "/api/v1/auth/login",
+        "/api/v1/auth/swagger-login",
+        "/health"
+    ]
+    
+    if request.url.path not in public_paths:
+        auth_header = headers.get("authorization", "")
+        if not auth_header.startswith("Bearer "):
+            raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+        token = auth_header.split(" ")[1]
+        try:
+            payload = verify_token(token, settings.jwt_secret)
+            user_id = payload.get("sub")
+            if user_id:
+                headers["X-User-Id"] = user_id
+                # Optionally add roles here if they are in the token
+        except jwt.ExpiredSignatureError:
+            raise HTTPException(status_code=401, detail="Token has expired")
+        except jwt.InvalidTokenError:
+            raise HTTPException(status_code=401, detail="Could not validate credentials")
+
+    body = await request.body()
+    
+    try:
+        logger.info("gateway.proxying", method=request.method, url=url)
+        res = await client.request(
+            method=request.method,
+            url=url,
+            headers=headers,
+            content=body,
+        )
+        return Response(
+            content=res.content,
+            status_code=res.status_code,
+            headers=dict(res.headers)
+        )
+    except httpx.RequestError as exc:
+        logger.error("gateway.request_failed", exc_info=exc, url=url)
+        raise HTTPException(status_code=502, detail="Bad Gateway")
+
+@app.api_route("/api/v1/auth/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+@app.api_route("/api/v1/employees/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+@app.api_route("/api/v1/departments/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def proxy_auth(request: Request):
+    return await forward_request(request, settings.auth_service_url)
+
+@app.api_route("/api/v1/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "PATCH"])
+async def proxy_monolith(request: Request, path: str):
+    if path.startswith("schedules") or path.startswith("shifts") or path.startswith("handovers"):
+        return await forward_request(request, settings.schedule_service_url)
+    
+    if path.startswith("audit") or path.startswith("notifications"):
+        return await forward_request(request, settings.notification_service_url)
+
+    # Anything else goes to the remaining monolith
+    return await forward_request(request, settings.monolith_url)
+
+@app.get("/health", tags=["Health"])
+async def health_check():
+    return {"status": "ok", "service": "gateway"}
