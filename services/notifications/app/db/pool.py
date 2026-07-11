@@ -38,9 +38,7 @@ async def create_pool() -> AsyncConnectionPool:
         conninfo=settings.db.url,
         min_size=settings.db.min_conns,
         max_size=settings.db.max_open_conns,
-        open=False,
-        # Default schema for the notification service
-        kwargs={"options": "-c search_path=notifications"}
+        open=False
     )
     await pool.open()
     await pool.check()

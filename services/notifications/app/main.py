@@ -13,7 +13,7 @@ from app.db.pool import create_pool, close_pool
 from shiftmaster_common.logging.structured import configure_logging, get_logger
 from shiftmaster_common.middleware.setup import CorrelationIdMiddleware, app_exception_handler, validation_exception_handler, unhandled_exception_handler
 from fastapi.exceptions import RequestValidationError
-from shiftmaster_common.exceptions.app_exceptions import AppException
+from shiftmaster_common.middleware.exceptions import AppException
 
 from app.events.consumer import start_consumers
 from shiftmaster_common.messaging.rabbitmq import init_rabbitmq, close_rabbitmq
