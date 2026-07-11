@@ -34,7 +34,7 @@ class DatabaseSettings(BaseSettings):
 
 class ServerSettings(BaseSettings):
     host: str = "0.0.0.0"
-    port: int = 8000
+    port: int = 8003
     env: str = "development"
     workers: int = 1
 

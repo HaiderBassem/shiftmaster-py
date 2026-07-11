@@ -22,9 +22,9 @@ COPY services/auth/app/ ./app/
 
 USER appuser
 
-EXPOSE 8000
+EXPOSE 8001
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD python -c "import httpx; httpx.get('http://localhost:8000/api/v1/auth/health').raise_for_status()" || exit 1
+    CMD python -c "import httpx; httpx.get('http://localhost:8001/api/v1/auth/health').raise_for_status()" || exit 1
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "2"]

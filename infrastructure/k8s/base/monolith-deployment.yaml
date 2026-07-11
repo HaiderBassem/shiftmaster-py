@@ -33,12 +33,12 @@ spec:
         - name: JWT_SECRET
           value: "supersecretjwtkeythatislongenough32chars"
         - name: AUTH_SERVICE_URL
-          value: "http://prod-auth:8000"
+          value: "http://prod-auth:8001"
         - name: SCHEDULE_SERVICE_URL
-          value: "http://prod-schedule:8000"
+          value: "http://prod-schedule:8002"
         - name: NOTIFICATION_SERVICE_URL
-          value: "http://prod-notifications:8000"
+          value: "http://prod-notifications:8003"
         - name: MONOLITH_URL
-          value: "http://prod-monolith:8000"
+          value: "http://prod-monolith:8004"
         ports:
-        - containerPort: 8000
+        - containerPort: 8004

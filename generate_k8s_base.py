@@ -154,8 +154,15 @@ spec:
 }
 
 # Add microservices
-services = ["gateway", "auth", "schedule", "notifications", "monolith"]
-for svc in services:
+services_ports = {
+    "gateway": 8000,
+    "auth": 8001,
+    "schedule": 8002,
+    "notifications": 8003,
+    "monolith": 8004
+}
+
+for svc, port in services_ports.items():
     manifests[f"{svc}-deployment.yaml"] = f"""\
 apiVersion: apps/v1
 kind: Deployment
@@ -192,16 +199,17 @@ spec:
         - name: JWT_SECRET
           value: "supersecretjwtkeythatislongenough32chars"
         - name: AUTH_SERVICE_URL
-          value: "http://prod-auth:8000"
+          value: "http://prod-auth:8001"
         - name: SCHEDULE_SERVICE_URL
-          value: "http://prod-schedule:8000"
+          value: "http://prod-schedule:8002"
         - name: NOTIFICATION_SERVICE_URL
-          value: "http://prod-notifications:8000"
+          value: "http://prod-notifications:8003"
         - name: MONOLITH_URL
-          value: "http://prod-monolith:8000"
+          value: "http://prod-monolith:8004"
         ports:
-        - containerPort: 8000
+        - containerPort: {port}
 """
+    type_lb = "type: LoadBalancer\n  " if svc == "gateway" else ""
     manifests[f"{svc}-service.yaml"] = f"""\
 apiVersion: v1
 kind: Service
@@ -209,9 +217,9 @@ metadata:
   name: {svc}
   namespace: shiftmaster
 spec:
-  {"type: LoadBalancer\n  " if svc == "gateway" else ""}ports:
-  - port: 8000
-    targetPort: 8000
+  {type_lb}ports:
+  - port: {port}
+    targetPort: {port}
   selector:
     app: {svc}
 """

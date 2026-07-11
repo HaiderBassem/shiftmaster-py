@@ -25,7 +25,7 @@ services:
         condition: service_healthy
     volumes:
       - .:/app
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8004 --reload
     restart: unless-stopped
 
   # ── Auth Service ───────────────────────────────────────────────────────
@@ -51,7 +51,7 @@ services:
       - ./services/auth:/app/services/auth
       - ./shared:/shared
     working_dir: /app/services/auth
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
     restart: unless-stopped
 
   # ── Schedule Service ───────────────────────────────────────────────────
@@ -77,7 +77,7 @@ services:
       - ./services/schedule:/app/services/schedule
       - ./shared:/shared
     working_dir: /app/services/schedule
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8002 --reload
     restart: unless-stopped
 
   # ── Notification Service ───────────────────────────────────────────────
@@ -100,7 +100,7 @@ services:
       - ./services/notifications:/app/services/notifications
       - ./shared:/shared
     working_dir: /app/services/notifications
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8003 --reload
     restart: unless-stopped
 
   # ── API Gateway ────────────────────────────────────────────────────────
@@ -110,12 +110,12 @@ services:
       dockerfile: services/gateway/Dockerfile
     container_name: shiftmaster_gateway
     ports:
-      - "9292:8000"
+      - "8000:8000"
     environment:
-      AUTH_SERVICE_URL: http://auth:8000
-      MONOLITH_URL: http://monolith:8000
-      SCHEDULE_SERVICE_URL: http://schedule:8000
-      NOTIFICATION_SERVICE_URL: http://notifications:8000
+      AUTH_SERVICE_URL: http://auth:8001
+      MONOLITH_URL: http://monolith:8004
+      SCHEDULE_SERVICE_URL: http://schedule:8002
+      NOTIFICATION_SERVICE_URL: http://notifications:8003
       REDIS_URL: redis://redis:6379/0
     depends_on:
       - auth
@@ -134,7 +134,7 @@ services:
     image: postgres:15-alpine
     container_name: shiftmaster_db
     ports:
-      - "5434:5432"   # exposed for local tooling (pgAdmin, DataGrip, etc.)
+      - "5432:5432"   # exposed for local tooling (pgAdmin, DataGrip, etc.)
     environment:
       POSTGRES_USER: ${DB_USER:-postgres}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -153,7 +153,7 @@ services:
     image: redis:7-alpine
     container_name: shiftmaster_redis
     ports:
-      - "6380:6379"   # exposed for local introspection (redis-cli, RedisInsight)
+      - "6379:6379"   # exposed for local introspection (redis-cli, RedisInsight)
     command: >
       redis-server
       --maxmemory 128mb
@@ -172,8 +172,8 @@ services:
     image: rabbitmq:3-management-alpine
     container_name: shiftmaster_rabbitmq
     ports:
-      - "5673:5672"    # AMQP
-      - "15673:15672"  # Management UI → http://localhost:15672
+      - "5672:5672"    # AMQP
+      - "15672:15672"  # Management UI → http://localhost:15672
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}

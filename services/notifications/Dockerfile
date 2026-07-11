@@ -22,9 +22,9 @@ COPY services/notifications/app/ ./app/
 
 USER appuser
 
-EXPOSE 8000
+EXPOSE 8003
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD python -c "import httpx; httpx.get('http://localhost:8000/health').raise_for_status()" || exit 1
+    CMD python -c "import httpx; httpx.get('http://localhost:8003/api/v1/notifications/health').raise_for_status()" || exit 1
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8003", "--workers", "1"]

@@ -57,7 +57,7 @@ class JWTSettings(BaseSettings):
 
 class ServerSettings(BaseSettings):
     host: str = "0.0.0.0"
-    port: int = 8000
+    port: int = 8004
     env: str = "development"
     workers: int = 1
 

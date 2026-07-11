@@ -32,10 +32,10 @@ RUN sed -i 's/\r$//' scripts/start.sh && chmod +x scripts/start.sh
 
 USER appuser
 
-EXPOSE 8000
+EXPOSE 8004
 
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
-    CMD python -c "import httpx; httpx.get('http://localhost:8000/health').raise_for_status()" || exit 1
+    CMD python -c "import httpx; httpx.get('http://localhost:8004/api/v1/health').raise_for_status()" || exit 1
 
 ENTRYPOINT ["bash", "scripts/start.sh"]
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8004", "--workers", "4"]
