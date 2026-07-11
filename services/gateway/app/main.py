@@ -16,16 +16,27 @@ app = FastAPI(
     title="ShiftMaster API Gateway",
     version="1.0.0",
     description="Main entry point for ShiftMaster microservices.",
-    swagger_ui_parameters={
-        "urls": [
-            {"url": "/openapi.json", "name": "API Gateway"},
-            {"url": "/api/v1/auth/openapi.json", "name": "Auth Service"},
-            {"url": "/api/v1/schedule/openapi.json", "name": "Schedule Service"},
-            {"url": "/api/v1/notifications/openapi.json", "name": "Notifications Service"},
-            {"url": "/api/v1/monolith/openapi.json", "name": "Core Monolith"},
-        ]
-    }
+    docs_url=None, # Disable default docs to use custom below
 )
+
+from fastapi.openapi.docs import get_swagger_ui_html
+
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url="",
+        title=app.title + " - Swagger UI",
+        swagger_ui_parameters={
+            "urls.primaryName": "API Gateway",
+            "urls": [
+                {"url": "/openapi.json", "name": "API Gateway"},
+                {"url": "/api/v1/auth/openapi.json", "name": "Auth Service"},
+                {"url": "/api/v1/schedule/openapi.json", "name": "Schedule Service"},
+                {"url": "/api/v1/notifications/openapi.json", "name": "Notifications Service"},
+                {"url": "/api/v1/monolith/openapi.json", "name": "Core Monolith"},
+            ]
+        }
+    )
 
 app.add_exception_handler(Exception, unhandled_exception_handler)
 app.add_middleware(CorrelationIdMiddleware)
