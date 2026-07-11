@@ -66,7 +66,7 @@ async def forward_request(request: Request, target_url: str) -> Response:
         "/health"
     ]
     
-    if request.url.path not in public_paths:
+    if request.url.path not in public_paths and not request.url.path.endswith("openapi.json") and not request.url.path.endswith("docs"):
         auth_header = headers.get("authorization", "")
         if not auth_header.startswith("Bearer "):
             raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
