@@ -32,11 +32,17 @@ app.add_middleware(CorrelationIdMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], # Should be configurable in prod
-    allow_credentials=True,
+    allow_credentials=False, # Must be False if allow_origins is ["*"]
     allow_methods=["*"],
     allow_headers=["*", "X-Correlation-ID"],
     expose_headers=["X-Correlation-ID"],
 )
+
+from fastapi.responses import RedirectResponse
+
+@app.get("/", include_in_schema=False)
+async def root():
+    return RedirectResponse(url="/docs")
 
 # Shared httpx client
 client = httpx.AsyncClient(timeout=30.0)
