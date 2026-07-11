@@ -88,8 +88,7 @@ async def admin_token(db_pool):
                     )
                 """, (user_id, TEST_HASHED_PASSWORD))
     
-    token = create_access_token(user_id, "admin")
-    return token
+    return user_id
 
 @pytest_asyncio.fixture
 async def user_token(db_pool):
@@ -110,5 +109,4 @@ async def user_token(db_pool):
                     )
                 """, (user_id, TEST_HASHED_PASSWORD))
     
-    token = create_access_token(user_id, "employee")
-    return token
+    return user_id
