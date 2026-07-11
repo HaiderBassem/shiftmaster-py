@@ -53,6 +53,9 @@ jobs:
       - name: Fix Docker Permissions
         run: sudo chmod 666 /var/run/docker.sock || true
 
+      - name: Tear down old environment
+        run: docker compose down -v --remove-orphans || true
+
       - name: Start Database
         run: docker compose up -d db
 
@@ -79,6 +82,10 @@ jobs:
 
       - name: Run Tests
         run: docker compose run --rm monolith bash -c "pip install '.[dev]' && pytest -v"
+
+      - name: Cleanup Test Environment
+        if: always()
+        run: docker compose down -v --remove-orphans
 
   deploy:
     needs: test
