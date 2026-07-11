@@ -24,9 +24,10 @@ from fastapi.openapi.docs import get_swagger_ui_html
 @app.get("/docs", include_in_schema=False)
 async def custom_swagger_ui_html():
     return get_swagger_ui_html(
-        openapi_url="",
+        openapi_url="/openapi.json",
         title=app.title + " - Swagger UI",
         swagger_ui_parameters={
+            "layout": "StandaloneLayout",
             "urls.primaryName": "API Gateway",
             "urls": [
                 {"url": "/openapi.json", "name": "API Gateway"},
