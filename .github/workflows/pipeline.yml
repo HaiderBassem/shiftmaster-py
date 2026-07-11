@@ -102,11 +102,16 @@ jobs:
           docker push ghcr.io/haiderbassem/shiftmaster-py-schedule:latest
           docker push ghcr.io/haiderbassem/shiftmaster-py-gateway:latest
           docker push ghcr.io/haiderbassem/shiftmaster-py-notifications:latest
-
       - name: Install kubectl
         uses: azure/setup-kubectl@v3
         with:
           version: 'latest'
+
+      - name: Set up Kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
 
       - name: Deploy to Server via Kubernetes (K3s)
         run: |
