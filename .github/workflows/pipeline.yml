@@ -112,4 +112,8 @@ jobs:
         run: |
           cd ~/actions-runner/_work/shiftmaster-py/shiftmaster-py
           git pull origin main
+          sudo cp /etc/rancher/k3s/k3s.yaml ./kubeconfig.yaml
+          sudo chown $USER:$USER ./kubeconfig.yaml
+          export KUBECONFIG=$(pwd)/kubeconfig.yaml
           kubectl apply -k infrastructure/k8s/overlays/prod --validate=false
+          rm ./kubeconfig.yaml
