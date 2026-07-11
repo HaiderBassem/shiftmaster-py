@@ -17,7 +17,7 @@ from app.schemas.auth_schema import Token, LoginRequest
 from app.schemas.employee_schema import EmployeeResponse
 from app.services.employee_service import EmployeeService
 from shiftmaster_common.security.jwt_utils import verify_password, create_access_token
-from shiftmaster_common.middleware.exceptions import AppException
+from shiftmaster_common.middleware.exceptions import AppException, NotFoundError
 from shiftmaster_common.cache.redis_client import rate_limit_check, rate_limit_reset
 from app.core.config import settings
 from app.api.deps import get_employee_service, get_current_user

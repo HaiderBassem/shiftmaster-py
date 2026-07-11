@@ -2,6 +2,7 @@ from typing import Any
 from uuid import UUID
 
 from app.repositories.department_repo import DepartmentRepository
+from shiftmaster_common.middleware.exceptions import NotFoundError
 from shiftmaster_common.middleware.exceptions import AppException
 
 class DepartmentService:

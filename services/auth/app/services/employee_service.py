@@ -6,6 +6,7 @@ from shiftmaster_common.messaging.rabbitmq import publish_event
 from shiftmaster_common.messaging.events import EmployeeCreatedEvent, EmployeeUpdatedEvent
 
 from app.repositories.employee_repo import EmployeeRepository
+from shiftmaster_common.middleware.exceptions import NotFoundError, ConflictError
 from shiftmaster_common.middleware.exceptions import AppException
 
 class EmployeeService:

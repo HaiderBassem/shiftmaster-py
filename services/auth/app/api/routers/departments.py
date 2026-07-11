@@ -3,6 +3,7 @@ from typing import Any, List
 from uuid import UUID
 import json
 
+from shiftmaster_common.middleware.exceptions import NotFoundError, ConflictError
 from app.schemas.department_schema import DepartmentCreate, DepartmentUpdate, DepartmentResponse
 from app.services.department_service import DepartmentService
 from shiftmaster_common.middleware.exceptions import AppException

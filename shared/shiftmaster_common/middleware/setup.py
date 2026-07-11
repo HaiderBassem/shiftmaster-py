@@ -35,7 +35,8 @@ class AppException(Exception):
         self.message = message
         self.status_code = status_code
 
-logger = logging.getLogger(__name__)
+from shiftmaster_common.logging.structured import get_logger
+logger = get_logger(__name__)
 
 # ── Re-export so main.py only imports from here ──────────────────────────────
 __all__ = [
