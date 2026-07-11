@@ -19,25 +19,48 @@ app = FastAPI(
     docs_url=None, # Disable default docs to use custom below
 )
 
-from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.responses import HTMLResponse
 
 @app.get("/docs", include_in_schema=False)
 async def custom_swagger_ui_html():
-    return get_swagger_ui_html(
-        openapi_url="/openapi.json",
-        title=app.title + " - Swagger UI",
-        swagger_ui_parameters={
-            "layout": "StandaloneLayout",
-            "urls.primaryName": "API Gateway",
-            "urls": [
+    html_content = """
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>ShiftMaster API Gateway - Swagger UI</title>
+      <link type="text/css" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+      <link rel="shortcut icon" href="https://fastapi.tiangolo.com/img/favicon.png">
+    </head>
+    <body>
+      <div id="swagger-ui"></div>
+      <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
+      <script>
+        window.onload = function() {
+          const ui = SwaggerUIBundle({
+            urls: [
                 {"url": "/openapi.json", "name": "API Gateway"},
                 {"url": "/api/v1/auth/openapi.json", "name": "Auth Service"},
                 {"url": "/api/v1/schedule/openapi.json", "name": "Schedule Service"},
                 {"url": "/api/v1/notifications/openapi.json", "name": "Notifications Service"},
-                {"url": "/api/v1/monolith/openapi.json", "name": "Core Monolith"},
-            ]
+                {"url": "/api/v1/monolith/openapi.json", "name": "Core Monolith"}
+            ],
+            "urls.primaryName": "API Gateway",
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            presets: [
+              SwaggerUIBundle.presets.apis,
+              SwaggerUIStandalonePreset
+            ],
+            layout: "StandaloneLayout"
+          })
+          window.ui = ui
         }
-    )
+      </script>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
 
 app.add_exception_handler(Exception, unhandled_exception_handler)
 app.add_middleware(CorrelationIdMiddleware)
