@@ -110,7 +110,7 @@ services:
       dockerfile: services/gateway/Dockerfile
     container_name: shiftmaster_gateway
     ports:
-      - "8000:8000"
+      - "80:80"
     environment:
       AUTH_SERVICE_URL: http://auth:8001
       MONOLITH_URL: http://monolith:8004
@@ -126,7 +126,7 @@ services:
       - ./services/gateway:/app/services/gateway
       - ./shared:/shared
     working_dir: /app/services/gateway
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 80 --reload
     restart: unless-stopped
 
   # ── PostgreSQL ───────────────────────────────────────────────────────────

@@ -125,14 +125,25 @@ spec:
         image: rabbitmq:3-management-alpine
         env:
         - name: RABBITMQ_DEFAULT_USER
-          value: "guest"
+          value: "shiftadmin"
         - name: RABBITMQ_DEFAULT_PASS
-          value: "guest"
+          value: "shiftpass"
         ports:
         - containerPort: 5672
           name: amqp
         - containerPort: 15672
           name: management
+        volumeMounts:
+        - name: rabbitmq-data
+          mountPath: /var/lib/rabbitmq
+  volumeClaimTemplates:
+  - metadata:
+      name: rabbitmq-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 2Gi
 """,
     "rabbitmq-service.yaml": """\
 apiVersion: v1
@@ -155,7 +166,7 @@ spec:
 
 # Add microservices
 services_ports = {
-    "gateway": 8000,
+    "gateway": 80,
     "auth": 8001,
     "schedule": 8002,
     "notifications": 8003,
@@ -189,7 +200,7 @@ spec:
         - name: REDIS_URL
           value: "redis://prod-redis:6379/0"
         - name: RABBITMQ_URL
-          value: "amqp://guest:guest@prod-rabbitmq:5672/"
+          value: "amqp://shiftadmin:shiftpass@prod-rabbitmq:5672/"
         - name: DB_PASSWORD
           value: "supersecretpassword"
         - name: DB_USER

@@ -11,6 +11,7 @@ import aio_pika
 from aio_pika.abc import AbstractRobustConnection, AbstractRobustChannel
 import structlog
 from pydantic import BaseModel
+import tenacity
 
 from shiftmaster_common.messaging.events import BaseEvent
 
@@ -34,6 +35,16 @@ ROUTING_KEYS = {
 }
 
 
+@tenacity.retry(
+    reraise=True,
+    stop=tenacity.stop_after_attempt(5),
+    wait=tenacity.wait_exponential(multiplier=1, min=2, max=10),
+    before_sleep=lambda retry_state: logger.warning(
+        "rabbitmq.retry",
+        attempt=retry_state.attempt_number,
+        wait_seconds=retry_state.next_action.sleep,
+    ),
+)
 async def init_rabbitmq(url: str) -> None:
     """Initialize RabbitMQ robust connection, channel, exchanges, and queues."""
     global _connection, _channel
