@@ -81,7 +81,7 @@ jobs:
         run: docker build -t ghcr.io/haiderbassem/shiftmaster-py-notifications:latest -f services/notifications/Dockerfile .
 
       - name: Run Tests
-        run: docker compose run --rm monolith bash -c "pip install '.[dev]' && pytest -v"
+        run: docker compose run --rm -u root -v .:/app monolith bash -c "pip install '.[dev]' && pytest -v"
 
       - name: Cleanup Test Environment
         if: always()
