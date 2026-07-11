@@ -103,6 +103,11 @@ jobs:
           docker push ghcr.io/haiderbassem/shiftmaster-py-gateway:latest
           docker push ghcr.io/haiderbassem/shiftmaster-py-notifications:latest
 
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+
       - name: Deploy to Server via Kubernetes (K3s)
         run: |
           cd ~/actions-runner/_work/shiftmaster-py/shiftmaster-py
