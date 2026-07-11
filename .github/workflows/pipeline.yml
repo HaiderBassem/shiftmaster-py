@@ -118,3 +118,4 @@ jobs:
           cd ~/actions-runner/_work/shiftmaster-py/shiftmaster-py
           git pull origin main
           kubectl apply -k infrastructure/k8s/overlays/prod --validate=false
+          kubectl rollout restart deployment -n shiftmaster --all

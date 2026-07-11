@@ -209,7 +209,7 @@ metadata:
   name: {svc}
   namespace: shiftmaster
 spec:
-  ports:
+  {"type: LoadBalancer\n  " if svc == "gateway" else ""}ports:
   - port: 8000
     targetPort: 8000
   selector:
