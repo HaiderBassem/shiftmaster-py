@@ -46,10 +46,18 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title=settings.project_name,
-    version="0.1.0",
-    description="Shiftmaster-py — Notification Service",
+    title="ShiftMaster-py Notification API",
+    version="1.0.0",
+    description="""
+    Microservice handling audit logs and asynchronous notifications.
+    """,
     lifespan=lifespan,
+    docs_url="/api/v1/notifications/docs",
+    openapi_url="/api/v1/notifications/openapi.json",
+    openapi_tags=[
+        {"name": "Audit Logs", "description": "Read-only access to system audit logs"},
+        {"name": "Notifications", "description": "Manage user notifications"},
+    ]
 )
 
 # ── Middleware (order matters: first registered = outermost) ──────────────────
@@ -83,3 +91,37 @@ async def health_check():
         "project": settings.project_name,
         "env": settings.server.env,
     }
+
+
+from fastapi.openapi.utils import get_openapi
+
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+        tags=app.openapi_tags,
+    )
+    openapi_schema["components"]["securitySchemes"] = {
+        "OAuth2PasswordBearer": {
+            "type": "oauth2",
+            "flows": {
+                "password": {
+                    "tokenUrl": "/api/v1/auth/swagger-login",
+                    "scopes": {}
+                }
+            }
+        }
+    }
+    for path in openapi_schema.get("paths", {}):
+        for method in openapi_schema["paths"][path]:
+            if "health" not in path and "swagger-login" not in path and "login" not in path:
+                openapi_schema["paths"][path][method]["security"] = [{"OAuth2PasswordBearer": []}]
+    
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+app.openapi = custom_openapi

@@ -97,7 +97,17 @@ async def swagger_login(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.post("/login", response_model=Token)
+@router.post(
+    "/login", 
+    response_model=Token,
+    summary="Authenticate user and get token",
+    description="Authenticates a user via email and password, returning a JWT bearer token.",
+    responses={
+        200: {"description": "Successfully authenticated"},
+        400: {"description": "Incorrect email or password, or inactive account"},
+        429: {"description": "Too many login attempts"}
+    }
+)
 async def login(
     request: Request,
     login_data: LoginRequest,
@@ -114,7 +124,17 @@ async def login(
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.get("/me", response_model=EmployeeResponse)
+@router.get(
+    "/me", 
+    response_model=EmployeeResponse,
+    summary="Get current user profile",
+    description="Returns the profile information of the currently authenticated user based on the provided token.",
+    responses={
+        200: {"description": "Profile retrieved successfully"},
+        401: {"description": "Not authenticated or token expired"},
+        403: {"description": "Not enough privileges"}
+    }
+)
 async def get_me(current_user: dict = Depends(get_current_user)) -> Any:
     """Return the currently authenticated user's profile."""
     return current_user

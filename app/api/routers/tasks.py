@@ -14,7 +14,16 @@ from app.api.deps import get_task_service, get_current_user, RequireRoles
 
 router = APIRouter()
 
-@router.get("/schedules", response_model=List[TaskScheduleResponse])
+@router.get(
+    "/schedules", 
+    response_model=List[TaskScheduleResponse],
+    summary="List active task schedules",
+    description="Retrieves a list of all active task schedules, optionally filtered by department.",
+    responses={
+        200: {"description": "List of active schedules"},
+        401: {"description": "Unauthorized"}
+    }
+)
 async def get_active_schedules(
     department_id: UUID | None = None,
     service: TaskService = Depends(get_task_service),
@@ -22,7 +31,19 @@ async def get_active_schedules(
 ) -> Any:
     return await service.get_active_schedules(department_id)
 
-@router.post("/schedules", response_model=TaskScheduleResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/schedules", 
+    response_model=TaskScheduleResponse, 
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a new task schedule",
+    description="Creates a new task schedule. Only accessible by admins, managers, or team leaders.",
+    responses={
+        201: {"description": "Schedule created successfully"},
+        400: {"description": "Invalid input data"},
+        401: {"description": "Unauthorized"},
+        403: {"description": "Insufficient permissions"}
+    }
+)
 async def create_schedule(
     schedule_in: TaskScheduleCreate,
     service: TaskService = Depends(get_task_service),

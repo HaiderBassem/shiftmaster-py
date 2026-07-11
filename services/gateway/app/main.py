@@ -15,6 +15,16 @@ logger = get_logger(__name__)
 app = FastAPI(
     title="ShiftMaster API Gateway",
     version="1.0.0",
+    description="Main entry point for ShiftMaster microservices.",
+    swagger_ui_parameters={
+        "urls": [
+            {"url": "/openapi.json", "name": "API Gateway"},
+            {"url": "/api/v1/auth/openapi.json", "name": "Auth Service"},
+            {"url": "/api/v1/schedule/openapi.json", "name": "Schedule Service"},
+            {"url": "/api/v1/notifications/openapi.json", "name": "Notifications Service"},
+            {"url": "/api/v1/monolith/openapi.json", "name": "Core Monolith"},
+        ]
+    }
 )
 
 app.add_exception_handler(Exception, unhandled_exception_handler)
@@ -106,6 +116,18 @@ async def proxy_monolith(request: Request, path: str):
         return await forward_request(request, settings.notification_service_url)
 
     # Anything else goes to the remaining monolith
+    return await forward_request(request, settings.monolith_url)
+
+@app.get("/api/v1/schedule/openapi.json", include_in_schema=False)
+async def proxy_schedule_openapi(request: Request):
+    return await forward_request(request, settings.schedule_service_url)
+
+@app.get("/api/v1/notifications/openapi.json", include_in_schema=False)
+async def proxy_notifications_openapi(request: Request):
+    return await forward_request(request, settings.notification_service_url)
+
+@app.get("/api/v1/monolith/openapi.json", include_in_schema=False)
+async def proxy_monolith_openapi(request: Request):
     return await forward_request(request, settings.monolith_url)
 
 @app.get("/health", tags=["Health"])
