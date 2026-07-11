@@ -93,7 +93,7 @@ async def swagger_login(
         employee_service=employee_service,
         client_ip=_client_ip(request),
     )
-    access_token = create_access_token(subject=str(user["id"]), role=user["role"])
+    access_token = create_access_token(data={"sub": str(user["id"]), "role": user["role"]}, secret=settings.jwt.secret)
     return {"access_token": access_token, "token_type": "bearer"}
 
 
@@ -120,7 +120,7 @@ async def login(
         employee_service=employee_service,
         client_ip=_client_ip(request),
     )
-    access_token = create_access_token(subject=str(user["id"]), role=user["role"])
+    access_token = create_access_token(data={"sub": str(user["id"]), "role": user["role"]}, secret=settings.jwt.secret)
     return {"access_token": access_token, "token_type": "bearer"}
 
 

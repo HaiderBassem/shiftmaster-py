@@ -68,22 +68,19 @@ def get_audit_service(repo: AuditRepository = Depends(get_audit_repo)) -> AuditS
 
 async def get_current_user(
     x_user_id: str | None = Header(default=None, alias="X-User-Id"),
-    employee_service: EmployeeService = Depends(get_employee_service)
+    x_user_role: str | None = Header(default=None, alias="X-User-Role")
 ) -> dict:
     if not x_user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing X-User-Id header",
         )
-    try:
-        user = await employee_service.get_by_id(x_user_id)
-        if user["status"] != "active":
-            raise HTTPException(status_code=403, detail="Inactive user")
-        return user
-    except HTTPException:
-        raise
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid user")
+    if not x_user_role:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing X-User-Role header",
+        )
+    return {"id": x_user_id, "role": x_user_role, "status": "active"}
 
 class RequireRoles:
     def __init__(self, allowed_roles: list[str]):

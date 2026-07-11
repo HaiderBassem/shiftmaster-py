@@ -94,6 +94,7 @@ async def forward_request(request: Request, target_url: str) -> Response:
     
     headers = dict(request.headers)
     headers.pop("host", None)
+    headers.pop("content-length", None)
     
     # Inject correlation ID
     cid = correlation_id.get()
@@ -117,21 +118,26 @@ async def forward_request(request: Request, target_url: str) -> Response:
             user_id = payload.get("sub")
             if user_id:
                 headers["X-User-Id"] = user_id
-                # Optionally add roles here if they are in the token
+            
+            user_role = payload.get("role")
+            if user_role:
+                headers["X-User-Role"] = user_role
         except jwt.ExpiredSignatureError:
             raise HTTPException(status_code=401, detail="Token has expired")
         except jwt.InvalidTokenError:
             raise HTTPException(status_code=401, detail="Could not validate credentials")
 
-    body = await request.body()
-    
     try:
         logger.info("gateway.proxying", method=request.method, url=url)
+        # We must use request.stream() to avoid loading large payloads into memory.
+        # However, httpx doesn't accept an async generator for `content` directly in older versions, 
+        # so we will use stream() by getting the body asynchronously. Wait, FastAPI request.stream() is an async generator.
+        # Let's pass the async generator.
         res = await client.request(
             method=request.method,
             url=url,
             headers=headers,
-            content=body,
+            content=request.stream(),
         )
         return Response(
             content=res.content,

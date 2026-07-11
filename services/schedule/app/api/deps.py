@@ -52,24 +52,19 @@ def get_handover_service(repo: HandoverRepository = Depends(get_handover_repo)) 
 
 async def get_current_user(
     x_user_id: str | None = Header(default=None, alias="X-User-Id"),
-    conn: AsyncConnection = Depends(get_db_connection)
+    x_user_role: str | None = Header(default=None, alias="X-User-Role")
 ) -> dict:
     if not x_user_id:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing X-User-Id header",
         )
-    try:
-        async with conn.cursor() as cur:
-            await cur.execute("SELECT id, role FROM schedule.employees WHERE id = %s", (x_user_id,))
-            row = await cur.fetchone()
-            if not row:
-                raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-            return {"id": str(row[0]), "role": row[1]}
-    except HTTPException:
-        raise
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid user")
+    if not x_user_role:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing X-User-Role header",
+        )
+    return {"id": x_user_id, "role": x_user_role}
 
 class RequireRoles:
     def __init__(self, allowed_roles: list[str]):

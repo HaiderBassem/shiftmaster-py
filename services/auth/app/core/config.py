@@ -26,7 +26,7 @@ class DatabaseSettings(BaseSettings):
     password: str = Field(..., min_length=1)
     name: str = "shift_master_py_db"
     ssl_mode: str = "disable"
-    max_open_conns: int = 50
+    max_open_conns: int = 15
     min_conns: int = 10
 
     model_config = {"env_prefix": "DB_"}
